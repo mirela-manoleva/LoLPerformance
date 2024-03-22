@@ -8,6 +8,16 @@
 *.so
 *.dylib
 
+# The default name of the binary after "go build"
+main
+
+# Folder for temporary files and saved request records
+temp/
+*.tmp
+
+# Excel files
+*.xlsx
+
 # Test binary, built with `go test -c`
 *.test
 
