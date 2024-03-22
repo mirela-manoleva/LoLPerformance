@@ -1,16 +1,63 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
 )
 
-func main() {
-	fmt.Println("Hello World!")
-	resp, err := http.Get("http://google.com/")
+const (
+	TOOL_API_KEY  = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
+	API_GET_PUUID = "https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/%s/%s"
+)
+
+func sendHTTPRequest(client *http.Client, typeReq string, url string) (payload string) {
+	req, err := http.NewRequest(typeReq, url, nil)
 	if err != nil {
-		fmt.Println("Error: ", err)
-	} else {
-		fmt.Println(resp.StatusCode, resp)
+		fmt.Println("Error while creating request: ", err)
+		return ""
 	}
+	req.Header.Add("X-Riot-Token", TOOL_API_KEY)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println("Error while sending request: ", err)
+		return ""
+	}
+
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("Error while reading response body: ", err)
+		return ""
+	}
+
+	return string(body)
+}
+
+func getPUUID(client *http.Client, gameName string, tagLine string) (PUUID string) {
+	typeReq := "GET"
+	url := fmt.Sprintf(API_GET_PUUID, gameName, tagLine)
+	response := sendHTTPRequest(client, typeReq, url)
+	dec := json.NewDecoder(strings.NewReader(response))
+
+	type ResponseObject struct {
+		PUUID string `json:"puuid"`
+	}
+	var respObject ResponseObject
+	err := dec.Decode(&respObject)
+	if err != nil {
+		fmt.Println("Error while decoding json string: ", err)
+	}
+	PUUID = respObject.PUUID
+
+	return PUUID
+}
+
+func main() {
+	client := &http.Client{}
+	PUUID := getPUUID(client, "Alerim", "EUNE")
+	fmt.Println(PUUID)
 }
