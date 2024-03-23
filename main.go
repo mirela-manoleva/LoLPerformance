@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
 const (
-	TOOL_API_KEY  = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
-	API_GET_PUUID = "https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/%s/%s"
+	TOOL_API_KEY         = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
+	HOST                 = "https://europe.api.riotgames.com"
+	API_GET_PUUID        = "/riot/account/v1/accounts/by-riot-id/%s/%s"
+	API_GET_LAST_GAME_ID = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
+	GAME_ID_REGEX        = "[^\"\\[]+"
 )
 
 func sendHTTPRequest(client *http.Client, typeReq string, url string) (payload string) {
@@ -39,7 +43,8 @@ func sendHTTPRequest(client *http.Client, typeReq string, url string) (payload s
 
 func getPUUID(client *http.Client, gameName string, tagLine string) (PUUID string) {
 	typeReq := "GET"
-	url := fmt.Sprintf(API_GET_PUUID, gameName, tagLine)
+	url := HOST + API_GET_PUUID
+	url = fmt.Sprintf(url, gameName, tagLine)
 	response := sendHTTPRequest(client, typeReq, url)
 	dec := json.NewDecoder(strings.NewReader(response))
 
@@ -56,8 +61,19 @@ func getPUUID(client *http.Client, gameName string, tagLine string) (PUUID strin
 	return PUUID
 }
 
+func getLastGameID(client *http.Client, PUUID string) (gameID string) {
+	url := HOST + API_GET_LAST_GAME_ID
+	url = fmt.Sprintf(url, PUUID)
+	response := sendHTTPRequest(client, "GET", url)
+
+	gameID = regexp.MustCompile(GAME_ID_REGEX).FindString(response)
+
+	return gameID
+}
+
 func main() {
 	client := &http.Client{}
 	PUUID := getPUUID(client, "Alerim", "EUNE")
-	fmt.Println(PUUID)
+	lastGameID := getLastGameID(client, PUUID)
+	fmt.Println(lastGameID)
 }
