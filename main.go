@@ -1,8 +1,18 @@
 package main
 
+// TODO:
+
+// Check naming. -> new branch prob
+// Check the limiter again.
+// Check if we need any type of concurency and if the program is concurency-safe.
+// Fix error messages.
+
 import (
 	"main/limiter"
 )
+
+var gameFile = "Improvement.xlsx"
+var gameSheet = "Mirela"
 
 func main() {
 	addRiotAPILimits()

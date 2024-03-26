@@ -36,14 +36,14 @@ func TestCanExecNoLimits(t *testing.T) {
 	}
 }
 
-func TestCanExec(t *testing.T){
+func TestCanExec(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
 	limitResponse := 5
 
 	AddLimit(limitResponse, time.Second)
-	for i := 0; i < limitResponse - 1; i++ {
+	for i := 0; i < limitResponse-1; i++ {
 		addRecord(time.Now())
 	}
 
@@ -52,7 +52,7 @@ func TestCanExec(t *testing.T){
 	}
 }
 
-func TestCannotExec(t *testing.T){
+func TestCannotExec(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -68,12 +68,12 @@ func TestCannotExec(t *testing.T){
 	}
 }
 
-func TestRecordClear(t *testing.T){
+func TestRecordClear(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
 	limitResponse := 11
-	limitPeriod := 50*time.Millisecond
+	limitPeriod := 50 * time.Millisecond
 
 	AddLimit(limitResponse, limitPeriod)
 	for i := 0; i < limitResponse; i++ {
@@ -93,7 +93,7 @@ func TestRecordNotClear(t *testing.T) {
 	ClearAllLimits()
 
 	limitResponse := 5
-	limitPeriod := 100*time.Millisecond
+	limitPeriod := 100 * time.Millisecond
 
 	AddLimit(limitResponse, limitPeriod)
 	for i := 0; i < limitResponse; i++ {

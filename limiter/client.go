@@ -13,7 +13,7 @@ import (
 )
 
 /*
-	Checks if the request will break any set limit and executes it.
+Checks if the request will break any set limit and executes it.
 */
 func SendRequest(client *http.Client, request *http.Request) (payload string, err error) {
 	if request == nil {
@@ -47,18 +47,18 @@ func SendRequest(client *http.Client, request *http.Request) (payload string, er
 }
 
 /*
-	Helper function for SendRequest
-	Returns false if a request executed now will break any limit in requestLimits.
+Helper function for SendRequest
+Returns false if a request executed now will break any limit in requestLimits.
 */
 func canExecuteRequestNow() bool {
 	if len(requestLimits) == 0 {
-		return true;
+		return true
 	}
 
 	currentTime := time.Now()
 	counter := 0
 
-	for i, j := len(requestRecords) - 1, 0; i >= 0; i-- {
+	for i, j := len(requestRecords)-1, 0; i >= 0; i-- {
 		counter++
 
 		if counter >= requestLimits[j].requestCount {

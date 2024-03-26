@@ -20,24 +20,24 @@ import (
 )
 
 /*
-	Name of the file where records are written into and read from.
+Name of the file where records are written into and read from.
 */
 var saveFilePath = filepath.Join("temp", "records.tmp")
 
 /*
-	Slice to hold all requests that have happened.
+Slice to hold all requests that have happened.
 */
 var requestRecords []time.Time
 
 /*
-	Adds a records to requestRecords.
-	If only addRecord is used to add records the slice requestRecords is ensured to be sorted.
+Adds a records to requestRecords.
+If only addRecord is used to add records the slice requestRecords is ensured to be sorted.
 */
 func addRecord(record time.Time) {
-	if len(requestRecords) != 0 && record.Before(requestRecords[len(requestRecords)-1])  {
+	if len(requestRecords) != 0 && record.Before(requestRecords[len(requestRecords)-1]) {
 		i := 0
-		for ; i < len(requestRecords) ; i++ {
-			if record.Before(requestRecords[i])  {
+		for ; i < len(requestRecords); i++ {
+			if record.Before(requestRecords[i]) {
 				requestRecords = slices.Insert(requestRecords, i, record)
 				return
 			}
@@ -47,7 +47,7 @@ func addRecord(record time.Time) {
 }
 
 /*
-	Deletes all previously stored records. Used to free space.
+Deletes all previously stored records. Used to free space.
 */
 func clearAllRecords() {
 	// Setting the slice to nil will release the underlying memory to the garbage collector.
@@ -55,8 +55,8 @@ func clearAllRecords() {
 }
 
 /*
-	Saves the recent requests made into a temporary file to ensure that the next start of the program doesn't break any defined limits.
-	Freely use as it overwrittes the temporary file.
+Saves the recent requests made into a temporary file to ensure that the next start of the program doesn't break any defined limits.
+Freely use as it overwrittes the temporary file.
 */
 func SaveRequestsMade() error {
 	if len(requestRecords) == 0 {
@@ -91,10 +91,10 @@ func SaveRequestsMade() error {
 }
 
 /*
-	Loads the requests made by a previous iteration of the program.
-	Should be used to ensure that the first few API calls don't break any set limits.
-	This can happen if the previous iteration of the program made alot of API calls before it closed.
-	Use it at the start of the program.
+Loads the requests made by a previous iteration of the program.
+Should be used to ensure that the first few API calls don't break any set limits.
+This can happen if the previous iteration of the program made alot of API calls before it closed.
+Use it at the start of the program.
 */
 func LoadRequestsMade() error {
 	fileReader, err := os.Open(saveFilePath)
