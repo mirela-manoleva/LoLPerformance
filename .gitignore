@@ -8,6 +8,12 @@
 *.so
 *.dylib
 
+# The default name of the binary after "go build"
+main
+
+# Saved request records
+records.tmp
+
 # Test binary, built with `go test -c`
 *.test
 
