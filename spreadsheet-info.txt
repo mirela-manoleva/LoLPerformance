@@ -1,0 +1,22 @@
+date
+rank
+goal
+
+game type (ranked, normal)
+is won
+individualPosition/lane
+championName
+
+killParticipation
+kills
+deaths
+deathsByEnemyChamps
+assists
+kda
+
+gameLength
+damagePerMinute
+goldPerMinute
+csPerMinute
+
+review notes
