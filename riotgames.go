@@ -1,9 +1,10 @@
-package api
+package main
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"main/limiter"
 	"net/http"
 	"regexp"
 	"strings"
@@ -20,13 +21,19 @@ const (
 	API_GET_RANK           = "https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/%s"
 )
 
-func makeRequestRiotAPI (requestType string, url string) (*http.Request, error) {
+func sendRiotAPIRequest (requestType string, url string) (string, error) {
 	request, err := http.NewRequest(requestType, url, nil)
-	if(err != nil) {
-		return nil, errors.New("error in creating a request [" + requestType + ", " + url + "] - " + err.Error())
+	if err != nil {
+		return "", errors.New("error in creating a request [" + requestType + ", " + url + "] - " + err.Error())
+	}
+	request.Header.Add("X-Riot-Token", TOOL_API_KEY)
+
+	response, err := limiter.SendRegulatedRequest(request)
+	if err != nil {
+		return "", err
 	}
 
-	return request, nil
+	return response, nil
 }
 
 func GetPUUID(gameName string, tagLine string) (string, error) {
@@ -34,13 +41,8 @@ func GetPUUID(gameName string, tagLine string) (string, error) {
 	url := EU_HOST + API_GET_PUUID
 	url = fmt.Sprintf(url, gameName, tagLine)
 
-	request, err := makeRequestRiotAPI(requestType, url)
-	if(err != nil){
-		return "", err
-	}
-
-	response, err := SendRegulatedRequest(request)
-	if (err != nil){
+	response, err := sendRiotAPIRequest(requestType, url)
+	if err != nil {
 		return "", err
 	}
 
@@ -63,13 +65,8 @@ func GetLastGameID(PUUID string) (string, error) {
 	url := EU_HOST + API_GET_LAST_GAME_ID
 	url = fmt.Sprintf(url, PUUID)
 
-	request, err := makeRequestRiotAPI(requestType, url)
-	if(err != nil){
-		return "", err
-	}
-
-	response, err := SendRegulatedRequest(request)
-	if(err != nil){
+	response, err := sendRiotAPIRequest(requestType, url)
+	if err != nil {
 		return "", err
 	}
 
@@ -94,13 +91,8 @@ func GetLastGameInfo(gameID string) (string, error) {
 	url := EU_HOST + API_GET_LAST_GAME_INFO
 	url = fmt.Sprintf(url, gameID)
 
-	request, err := makeRequestRiotAPI(requestType, url)
-	if(err != nil){
-		return "", err
-	}
-
-	response, err := SendRegulatedRequest(request)
-	if(err != nil){
+	response, err := sendRiotAPIRequest(requestType, url)
+	if err != nil {
 		return "", err
 	}
 
@@ -112,13 +104,8 @@ func GetRank(summonerID string) (string, error) {
 	url := API_GET_RANK
 	url = fmt.Sprintf(url, summonerID)
 
-	request, err := makeRequestRiotAPI(requestType, url)
-	if(err != nil){
-		return "", err
-	}
-
-	response, err := SendRegulatedRequest(request)
-	if(err != nil){
+	response, err := sendRiotAPIRequest(requestType, url)
+	if err != nil {
 		return "", err
 	}
 

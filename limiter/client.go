@@ -1,4 +1,4 @@
-package api
+package limiter
 
 import (
 	"errors"
@@ -16,22 +16,19 @@ var customClient = &http.Client{Timeout: 30*time.Second}
 	Checks if the request will break any set limit and executes it.
 */
 func SendRegulatedRequest(request *http.Request) (payload string, err error) {
-	if (request == nil) {
+	if request == nil {
 		return "", errors.New("request is nil")
 	}
 
-	request.Header.Add("X-Riot-Token", TOOL_API_KEY)
-
-	if(!canExecuteRequestNow()){
+	if !canExecuteRequestNow() {
 		return "", errors.New("rate exceeded for API calls")
 	}
 
-	// Making a record before
-	requestRecords = append(requestRecords, time.Now())
+	addRecord(time.Now())
 
 	response, err := customClient.Do(request)
 	if err != nil {
-		return "", errors.New("error in while executing request - " + err.Error())
+		return "", errors.New("error while executing request - " + err.Error())
 	}
 
 	defer response.Body.Close()

@@ -11,8 +11,9 @@
 # The default name of the binary after "go build"
 main
 
-# Saved request records
-records.tmp
+# Folder for temporary files and saved request records
+tmp
+*.tmp
 
 # Test binary, built with `go test -c`
 *.test
