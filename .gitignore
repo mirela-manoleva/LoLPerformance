@@ -12,7 +12,7 @@
 main
 
 # Folder for temporary files and saved request records
-tmp
+temp/
 *.tmp
 
 # Test binary, built with `go test -c`

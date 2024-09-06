@@ -9,7 +9,7 @@ import (
 func limitsToString(slice []limit) string {
 	var result strings.Builder
 	for i := 0; i < len(slice); i++ {
-		result.WriteString("Limit " + strconv.Itoa(i+1) + " : Req = " + strconv.Itoa(slice[i].requestsAllowed) + " Per = " + slice[i].period.String() + " seconds." + "\n")
+		result.WriteString("Limit " + strconv.Itoa(i+1) + " : Req = " + strconv.Itoa(slice[i].requestCount) + " Per = " + slice[i].period.String() + " seconds." + "\n")
 	}
 	return result.String()
 }

@@ -1,5 +1,10 @@
 package limiter
 
+/*
+	File description:
+	Defines the limit struct and gives the user the ability to modify rules.
+*/
+
 import (
 	"slices"
 	"time"
@@ -14,25 +19,24 @@ var requestLimits []limit
 
 /*
 	Type to encapsulate the definition of an API Limit.
-	A limit is defined as requestsAllowed per period of time.
- */
+*/
 type limit struct {
-	requestsAllowed		int
-	period						time.Duration
+	requestCount		int
+	period					time.Duration
 }
 
 /*
 	Helper function to reduce code size.
 */
 func (main limit) isEqual(other limit) bool {
-	return main.period == other.period && main.requestsAllowed == other.requestsAllowed
+	return main.period == other.period && main.requestCount == other.requestCount
 }
 
 /*
-	Adds a limit. Calls to the SendRegulatedRequest() will abide to the limit.
+	Adds a limit. Calls to the SendRequest() will abide to the limit.
 */
-func AddLimit(allowedRequests int, timeRange time.Duration) {
-	limit := limit{requestsAllowed: allowedRequests, period: timeRange}
+func AddLimit(requestCount int, period time.Duration) {
+	limit := limit{requestCount, period}
 	i := 0
 	for ; i < len(requestLimits) && limit.period > requestLimits[i].period; i++ {}
 
@@ -47,9 +51,9 @@ func AddLimit(allowedRequests int, timeRange time.Duration) {
 /*
 	Removes previously declared limit.
 */
-func RemoveLimit(limit limit) {
+func RemoveLimit(lim limit) {
 	for i := 0; i < len(requestLimits); i++ {
-		if limit.isEqual(requestLimits[i]) {
+		if lim.isEqual(requestLimits[i]) {
 			requestLimits = slices.Delete(requestLimits, i, i+1)
 			return
 		}
@@ -61,35 +65,4 @@ func RemoveLimit(limit limit) {
 */
 func ClearAllLimits() {
 	requestLimits = nil
-}
-
-/*
-	Returns false if the request will break any limit in requestLimits.
-*/
-func canExecuteRequestNow() bool {
-	if len(requestLimits) == 0 {
-		return true;
-	}
-
-	currentTime := time.Now()
-	counter := 0
-
-	for i, j := len(requestRecords) - 1, 0; i >= 0; i-- {
-		counter++
-
-		if counter >= requestLimits[j].requestsAllowed {
-			return false
-		}
-
-		elapsed := currentTime.Sub(requestRecords[i])
-		if elapsed >= requestLimits[j].period {
-			j++
-			if j >= len(requestLimits) { // The difference between the last request and the current time is bigger than any limit's period
-				clearAllRecords() // Only safe time to delete all records
-				return true
-			}
-		}
-	}
-
-	return true
 }

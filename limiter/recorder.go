@@ -1,9 +1,15 @@
+package limiter
+
 /*
-	The user of the package shouldn't know about the records.
+	File description:
+	Defines the functionality record requests made in order to check if any limits are broken.
+	Also defines the functions that save and load requests from a file to ensure that new requests
+	are not breaking any limits because of previous executions of the program.
+
+	Note:
+	The user of the package shouldn't know about these records.
 	Don't export anything around records!
 */
-
-package limiter
 
 import (
 	"encoding/gob"
@@ -17,7 +23,7 @@ import (
 /*
 	Name of the file where records are written into and read from.
 */
-var saveFilePath = filepath.Join("tmp", "records.tmp")
+var saveFilePath = filepath.Join("temp", "records.tmp")
 
 /*
 	Slice to hold all requests that have happened.

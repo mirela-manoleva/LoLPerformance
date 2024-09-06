@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+/*
+	The default client + 30 sec timeout
+*/
+var httpClient = &http.Client{Timeout: 30*time.Second}
+
 func TestRegRequestPass(t *testing.T){
 	clearAllRecords()
 	ClearAllLimits()
@@ -26,7 +31,7 @@ func TestRegRequestPass(t *testing.T){
 		addRecord(time.Now())
 	}
 
-	response, err := SendRegulatedRequest(request)
+	response, err := SendRequest(httpClient, request)
 	if err != nil || len(response) == 0 {
 		t.Fatal("A request failed or the response was with len 0: " + err.Error() + "\n" + getState())
 	}
@@ -49,7 +54,7 @@ func TestRegRequestPassRealRequests(t *testing.T){
 	}
 
 	for i := 0; i < limitRequests; i++ {
-		response, err := SendRegulatedRequest(request)
+		response, err := SendRequest(httpClient, request)
 		if err != nil || len(response) == 0 {
 			t.Fatal("A request failed or the response was with len 0: " + err.Error() + "\n" + getState())
 		}
@@ -72,13 +77,13 @@ func TestRegRequestFailRealRequests(t *testing.T){
 	}
 
 	for i := 0; i < limitRequests; i++ {
-		response, err := SendRegulatedRequest(request)
+		response, err := SendRequest(httpClient, request)
 		if err != nil || len(response) == 0 {
 			t.Fatal("A request failed or the response was with len 0: " + err.Error() + "\n" + getState())
 		}
 	}
 
-	response , err := SendRegulatedRequest(request)
+	response , err := SendRequest(httpClient, request)
 	if err == nil {
 		t.Fatal("A request succeeded when it shouldn't have.\n" + getState())
 	}
@@ -106,7 +111,7 @@ func TestRegRequestFail(t *testing.T){
 	if err != nil {
 		t.Fatal("error creating a request [" + requestType + ", " + url + "] - " + err.Error())
 	}
-	response , err := SendRegulatedRequest(request)
+	response , err := SendRequest(httpClient, request)
 	if err == nil {
 		t.Fatal("A request succeeded when it shouldn't have.\n" + getState())
 	}
@@ -139,7 +144,7 @@ func TestRegRequestTwoLimitsPass(t *testing.T){
 		addRecord(time.Now())
 	}
 
-	response, err := SendRegulatedRequest(request)
+	response, err := SendRequest(httpClient, request)
 	if err != nil || len(response) == 0 {
 		t.Fatal("A request failed or the response was with len 0: " + err.Error() + "\n" + getState())
 	}
@@ -151,7 +156,7 @@ func TestRegRequestTwoLimitsPass(t *testing.T){
 	}
 
 	time.Sleep(limit1Period) // Ensure that we won't break the first limit
-	response, err = SendRegulatedRequest(request)
+	response, err = SendRequest(httpClient, request)
 	if err != nil || len(response) == 0 {
 		t.Fatal("A request failed or the response was with len 0: " + err.Error() + "\n" + getState())
 	}
@@ -181,7 +186,7 @@ func TestRegRequestTwoLimitsFail(t *testing.T){
 		addRecord(time.Now())
 	}
 
-	response, err := SendRegulatedRequest(request)
+	response, err := SendRequest(httpClient, request)
 	if err == nil {
 		t.Fatal("A request succeeded when it shouldn't have.\n" + getState())
 	}
@@ -196,7 +201,7 @@ func TestRegRequestTwoLimitsFail(t *testing.T){
 	}
 
 	time.Sleep(limit1Period) // Ensure that we won't break the first limit
-	response, err = SendRegulatedRequest(request)
+	response, err = SendRequest(httpClient, request)
 	if err == nil {
 		t.Fatal("A request succeeded when it shouldn't have.\n" + getState())
 	}

@@ -1,5 +1,11 @@
 package main
 
+/*
+	File description:
+	Defines the functions that communicate with the riot servers to fetch the data needed.
+	Uses the limiter to regulate api calls.
+*/
+
 import (
 	"encoding/json"
 	"errors"
@@ -8,6 +14,7 @@ import (
 	"net/http"
 	"regexp"
 	"strings"
+	"time"
 )
 
 const (
@@ -21,14 +28,30 @@ const (
 	API_GET_RANK           = "https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/%s"
 )
 
-func sendRiotAPIRequest (requestType string, url string) (string, error) {
+/*
+	The default client + 30 sec timeout
+*/
+var httpClient = &http.Client{Timeout: 30*time.Second}
+
+/*
+	Defines the riot API limits.
+	20 requests every 1 seconds.
+	100 requests every 2 minutes.
+	As there are multiple limitations those limits are the most strict ones, ignoring endpoint specific ones
+*/
+func addRiotAPILimits() {
+	limiter.AddLimit(20, time.Second)
+	limiter.AddLimit(100, 2*time.Minute)
+}
+
+func sendRiotAPIRequest(requestType string, url string) (string, error) {
 	request, err := http.NewRequest(requestType, url, nil)
 	if err != nil {
 		return "", errors.New("error in creating a request [" + requestType + ", " + url + "] - " + err.Error())
 	}
 	request.Header.Add("X-Riot-Token", TOOL_API_KEY)
 
-	response, err := limiter.SendRegulatedRequest(request)
+	response, err := limiter.SendRequest(httpClient, request)
 	if err != nil {
 		return "", err
 	}

@@ -2,17 +2,10 @@ package main
 
 import (
 	"main/limiter"
-	"time"
 )
 
 func main() {
-	/*
-		20 requests every 1 seconds
-		100 requests every 2 minutes
-		As there are multiple limitations those limits will use the most strict ones, ignoring endpoint specific ones
-	*/
-	limiter.AddLimit(20, time.Second)
-	limiter.AddLimit(100, 2*time.Minute)
+	addRiotAPILimits()
 
 	err := limiter.LoadRequestsMade()
 	if err != nil {

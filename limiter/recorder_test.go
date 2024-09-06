@@ -134,7 +134,7 @@ func TestSaveEmptyRecords(t *testing.T) {
 	}
 }
 
-func TestLoadNoTmpFile(t *testing.T) {
+func TestLoadNoTempFile(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
