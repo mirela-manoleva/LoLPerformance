@@ -2,8 +2,7 @@ package limiter
 
 /*
 	File description:
-	Defines the functionality to send and check http requests that abide the
-	user defined limits.
+	Defines the functionality to send and check http requests that abide the user defined limits.
 */
 
 import (
@@ -27,7 +26,7 @@ func SendRequest(client *http.Client, request *http.Request) (payload string, er
 
 	addRecord(time.Now())
 
-	// The time of execution of the request is greated than the time of the check.
+	// The time of execution of the request is greater than the time of the check.
 	// That guarantees that the request can be executed if the original check passed.
 	//
 	// Note that this will change if we introduce any sort of concurency.
