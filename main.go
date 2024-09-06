@@ -1,17 +1,42 @@
 package main
 
 import (
-	"fmt"
-	"main/api"
-	"net/http"
+	"main/limiter"
 )
 
 func main() {
-	client := &http.Client{}
-	PUUID := api.GetPUUID(client, "Alerim", "EUNE")
-	lastGameID := api.GetLastGameID(client, PUUID)
-	lastGameInfo := api.GetLastGameInfo(client, lastGameID)
-	AlerimRank := api.GetRank(client, "LeLTvLbZnC6-6NyvEj9aC2hCUJV3O1iThzV9YQqVtDkHe7E")
-	fmt.Println(lastGameInfo)
-	fmt.Println(AlerimRank)
+	addRiotAPILimits()
+
+	err := limiter.LoadRequestsMade()
+	if err != nil {
+		println("Couldn't load previous records - " + err.Error())
+	}
+
+	defer func () {
+			err = limiter.SaveRequestsMade()
+		// Should also add option for retry
+		if err != nil {
+			println("Couldn't save records. Please wait for 120 seconds before starting the program again - " + err.Error())
+		}
+	} ()
+
+	PUUID, err := GetPUUID("Alerim", "EUNE")
+	if err != nil {
+		println("GetPUUID Error: ", err.Error())
+		return
+	}
+
+	lastGameID, err := GetLastGameID(PUUID)
+	if err != nil {
+		println("GetLastGameID Error: ", err.Error())
+		return
+	}
+
+	lastGameInfo, err := GetLastGameInfo(lastGameID)
+	if err != nil {
+		println("GetLastGameInfo Error: ", err.Error())
+		return
+	}
+
+	println(lastGameInfo)
 }
