@@ -138,16 +138,16 @@ func GetGameRecord(gameID string, PUUID string) (GameRecord, error) {
 	gameRecord.role = player.IndividualPosition
 	gameRecord.champion = player.ChampionName
 
-	gameRecord.killParticipation = player.Challenges.KillParticipation
+	gameRecord.killParticipation = roundTo2DecimalPlaces(player.Challenges.KillParticipation * 100)
 	gameRecord.kills = player.Kills
 	gameRecord.deaths = player.Deaths
 	gameRecord.assists = player.Assists
-	gameRecord.kda = player.Challenges.Kda
+	gameRecord.kda = roundTo2DecimalPlaces(player.Challenges.Kda)
 
 	gameRecord.gameLength = getGameLength(player.Challenges.GameLength)
-	gameRecord.damagePerMinute = player.Challenges.DamagePerMinute
-	gameRecord.goldPerMinute = player.Challenges.GoldPerMinute
-	gameRecord.csPerMinute = float64(player.TotalMinionsKilled) / player.Challenges.GameLength
+	gameRecord.damagePerMinute = roundTo2DecimalPlaces(player.Challenges.DamagePerMinute)
+	gameRecord.goldPerMinute = roundTo2DecimalPlaces(player.Challenges.GoldPerMinute)
+	gameRecord.csPerMinute = roundTo2DecimalPlaces(float64(player.TotalMinionsKilled) / player.Challenges.GameLength)
 
 	rank, err := getRank(player.SummonerId)
 	if err != nil {
@@ -229,4 +229,8 @@ func getGameLength(lengthInSeconds float64) string {
 	minutes := int64(lengthInSeconds / 60)
 	seconds := int64(math.Round(lengthInSeconds - float64(minutes*60)))
 	return fmt.Sprintf("%d:%d", minutes, seconds)
+}
+
+func roundTo2DecimalPlaces(floatNumber float64) float64 {
+	return math.Round(floatNumber*100) / 100
 }

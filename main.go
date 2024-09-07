@@ -31,7 +31,6 @@ func main() {
 		println("GetLastGameID Error: ", err.Error())
 		return
 	}
-	println(lastGameID)
 
 	gameRecord, err := GetGameRecord(lastGameID, PUUID)
 	if err != nil {
@@ -39,6 +38,6 @@ func main() {
 		return
 	}
 
-	println(gameRecord.queueType, gameRecord.champion)
+	println(gameRecord.champion)
 
 }
