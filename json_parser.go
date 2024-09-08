@@ -1,55 +1,68 @@
 package main
 
+/*
+	File description:
+	Defines the functionality to parse JSON strings to Go objects.
+*/
+
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 )
 
-type PUUIDObj struct {
-	PUUID string `json:"puuid"`
+/*
+Struct that holds the riot global identification number for a player.
+Used when parsing the response from PUUID_ENDPOINT.
+*/
+type PUUID struct {
+	String string `json:"puuid"`
 }
 
-type GameInfoObject struct {
-	Metadata Metadata `json:"metadata"`
-	Info     Info     `json:"info"`
+/*
+Struct that holds the data about a specific LoL game.
+Used when parsing the response from GAME_DATA_ENDPOINT.
+*/
+type GameData struct {
+	Metadata struct {
+		ParticipantsPUUID []string `json:"participants"`
+	} `json:"metadata"`
+	Info struct {
+		GameStartTimestamp int64 `json:"gameStartTimestamp"`
+		ParticipantData    []struct {
+			Assists    int `json:"assists"`
+			Challenges struct {
+				DPM        float64 `json:"damagePerMinute"`
+				GameLength float64 `json:"gameLength"`
+				GPM        float64 `json:"goldPerMinute"`
+				KDA        float64 `json:"kda"`
+				KP         float64 `json:"killParticipation"`
+			} `json:"challenges"`
+			Champion     string `json:"championName"`
+			Deaths       int    `json:"deaths"`
+			Kills        int    `json:"kills"`
+			TeamPosition string `json:"teamPosition"`
+			SummonerID   string `json:"summonerId"`
+			CS           int    `json:"totalMinionsKilled"`
+			Win          bool   `json:"win"`
+		} `json:"participants"`
+		QueueID int `json:"queueId"`
+	} `json:"info"`
 }
 
-type Metadata struct {
-	Participants []string `json:"participants"`
+/*
+Struct that holds the data about player's rank.
+Used when parsing the response from SUMMONER_DATA_ENDPOINT.
+*/
+type Rank struct {
+	Name string `json:"rank"`
+	Tier string `json:"tier"`
 }
 
-type Info struct {
-	GameStartTimestamp int64             `json:"gameStartTimestamp"`
-	Participants       []ParticipantData `json:"participants"`
-	QueueId            int               `json:"queueId"`
-}
-
-type ParticipantData struct {
-	Assists            int        `json:"assists"`
-	Challenges         Challenges `json:"challenges"`
-	ChampionName       string     `json:"championName"`
-	Deaths             int        `json:"deaths"`
-	Kills              int        `json:"kills"`
-	IndividualPosition string     `json:"individualPosition"`
-	SummonerId         string     `json:"summonerId"`
-	TotalMinionsKilled int        `json:"totalMinionsKilled"`
-	Win                bool       `json:"win"`
-}
-
-type Challenges struct {
-	DamagePerMinute   float64 `json:"damagePerMinute"`
-	GameLength        float64 `json:"gameLength"`
-	GoldPerMinute     float64 `json:"goldPerMinute"`
-	Kda               float64 `json:"kda"`
-	KillParticipation float64 `json:"killParticipation"`
-}
-
-func parseStringToJSON(jsonStr string, object any) error {
+func JSONToObject(jsonStr string, object any) error {
 	dec := json.NewDecoder(strings.NewReader(jsonStr))
 	err := dec.Decode(&object)
 	if err != nil {
-		return fmt.Errorf("error while decoding json string: %s", err.Error())
+		return err
 	}
 
 	return nil

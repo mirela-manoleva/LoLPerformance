@@ -32,12 +32,12 @@ func main() {
 		return
 	}
 
-	gameRecord, err := GetGameRecord(lastGameID, PUUID)
+	gameRecord, rank, err := GetGameRecord(lastGameID, PUUID)
 	if err != nil {
 		println("GetLastGameInfo Error: ", err.Error())
 		return
 	}
 
 	println(gameRecord.champion)
-
+	println(rank.Name, rank.Tier)
 }

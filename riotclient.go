@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"main/limiter"
-	"math"
 	"net/http"
 	"regexp"
 	"time"
@@ -24,36 +23,15 @@ const (
 )
 
 const (
-	PUUID_ENDPOINT          = "/riot/account/v1/accounts/by-riot-id/%s/%s"
-	LAST_GAME_ID_ENDPOINT   = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
-	LAST_GAME_INFO_ENDPOINT = "/lol/match/v5/matches/%s"
-	RANK_ENDPOINT           = "/lol/league/v4/entries/by-summoner/%s"
+	PUUID_ENDPOINT         = "/riot/account/v1/accounts/by-riot-id/%s/%s"
+	LAST_GAME_ID_ENDPOINT  = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
+	GAME_DATA_ENDPOINT     = "/lol/match/v5/matches/%s"
+	SUMMONER_DATA_ENDPOINT = "/lol/league/v4/entries/by-summoner/%s"
 )
 
 const (
 	GAME_ID_REGEX = "[^\"\\[]+"
 )
-
-type GameRecord struct {
-	date string
-	rank string
-
-	queueType string
-	outcome   string
-	role      string
-	champion  string
-
-	killParticipation float64
-	kills             int
-	deaths            int
-	assists           int
-	kda               float64
-
-	gameLength      string
-	damagePerMinute float64
-	goldPerMinute   float64
-	csPerMinute     float64
-}
 
 /*
 The default client + 30 sec timeout
@@ -91,18 +69,18 @@ func GetPUUID(gameName string, tagLine string) (string, error) {
 	url := RIOT_SERVER_EU + PUUID_ENDPOINT
 	url = fmt.Sprintf(url, gameName, tagLine)
 
-	responseStr, err := sendRiotAPIRequest(requestType, url)
+	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
 		return "", err
 	}
 
-	var respObj PUUIDObj
-	err = parseStringToJSON(responseStr, &respObj)
+	var puuid PUUID
+	err = JSONToObject(response, &puuid)
 	if err != nil {
 		return "", err
 	}
 
-	return respObj.PUUID, nil
+	return puuid.String, nil
 }
 
 func GetLastGameID(PUUID string) (string, error) {
@@ -118,119 +96,37 @@ func GetLastGameID(PUUID string) (string, error) {
 	return regexp.MustCompile(GAME_ID_REGEX).FindString(response), nil
 }
 
-func GetGameRecord(gameID string, PUUID string) (GameRecord, error) {
-	var gameRecord GameRecord
-
-	gameInfoObj, err := getGameInfoObj(gameID)
-	if err != nil {
-		return gameRecord, err
-	}
-
-	participantIndex := getParticipantIndex(gameInfoObj.Metadata.Participants, PUUID)
-	if participantIndex == -1 {
-		return gameRecord, errors.New("error: couldn't find player in participants array")
-	}
-	player := gameInfoObj.Info.Participants[participantIndex]
-
-	gameRecord.date = getDateStr(gameInfoObj.Info.GameStartTimestamp)
-	gameRecord.queueType = getQueueStr(gameInfoObj.Info.QueueId)
-	gameRecord.outcome = getGameOutcome(player.Win)
-	gameRecord.role = player.IndividualPosition
-	gameRecord.champion = player.ChampionName
-
-	gameRecord.killParticipation = roundTo2DecimalPlaces(player.Challenges.KillParticipation * 100)
-	gameRecord.kills = player.Kills
-	gameRecord.deaths = player.Deaths
-	gameRecord.assists = player.Assists
-	gameRecord.kda = roundTo2DecimalPlaces(player.Challenges.Kda)
-
-	gameRecord.gameLength = getGameLength(player.Challenges.GameLength)
-	gameRecord.damagePerMinute = roundTo2DecimalPlaces(player.Challenges.DamagePerMinute)
-	gameRecord.goldPerMinute = roundTo2DecimalPlaces(player.Challenges.GoldPerMinute)
-	gameRecord.csPerMinute = roundTo2DecimalPlaces(float64(player.TotalMinionsKilled) / player.Challenges.GameLength)
-
-	rank, err := getRank(player.SummonerId)
-	if err != nil {
-		return gameRecord, err
-	}
-	gameRecord.rank = rank
-
-	return gameRecord, nil
-}
-
-func getGameInfoObj(gameID string) (GameInfoObject, error) {
+func getGameData(gameID string) (GameData, error) {
 	requestType := "GET"
-	url := RIOT_SERVER_EU + LAST_GAME_INFO_ENDPOINT
+	url := RIOT_SERVER_EU + GAME_DATA_ENDPOINT
 	url = fmt.Sprintf(url, gameID)
-
-	responseStr, err := sendRiotAPIRequest(requestType, url)
-	if err != nil {
-		return GameInfoObject{}, err
-	}
-
-	var respObj GameInfoObject
-	err = parseStringToJSON(responseStr, &respObj)
-
-	return respObj, err
-}
-
-func getRank(summonerID string) (string, error) {
-	requestType := "GET"
-	url := RIOT_SERVER_EUNE + RANK_ENDPOINT
-	url = fmt.Sprintf(url, summonerID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
-		return "", err
+		return GameData{}, err
 	}
 
-	return response, nil
+	var data GameData
+	err = JSONToObject(response, &data)
+
+	return data, err
 }
 
-func getDateStr(unixTimestamp int64) string {
-	seconds := unixTimestamp / 1000
-	nanoseconds := (unixTimestamp % 1000) * 1000
-	year, month, day := time.Unix(seconds, nanoseconds).Date()
-	return fmt.Sprintf("%d/%d/%d", day, month, year)
-}
+func getRank(summonerID string) (Rank, error) {
+	requestType := "GET"
+	url := RIOT_SERVER_EUNE + SUMMONER_DATA_ENDPOINT
+	url = fmt.Sprintf(url, summonerID)
 
-func getQueueStr(queueType int) string {
-	switch queueType {
-	case 400:
-		return "Normal"
-	case 420:
-		return "Ranked Solo"
-	case 440:
-		return "Ranked Flex"
-	case 490:
-		return "Normal"
-	default:
-		return "Other"
+	println(url)
+
+	response, err := sendRiotAPIRequest(requestType, url)
+	if err != nil {
+		return Rank{}, err
 	}
-}
+	println(response)
 
-func getParticipantIndex(allPUUIDs []string, playerPUUID string) int {
-	for index, PUUID := range allPUUIDs {
-		if PUUID == playerPUUID {
-			return index
-		}
-	}
-	return -1
-}
+	var rank Rank
+	err = JSONToObject(response, &rank)
 
-func getGameOutcome(isWon bool) string {
-	if isWon {
-		return "Win"
-	}
-	return "Loss"
-}
-
-func getGameLength(lengthInSeconds float64) string {
-	minutes := int64(lengthInSeconds / 60)
-	seconds := int64(math.Round(lengthInSeconds - float64(minutes*60)))
-	return fmt.Sprintf("%d:%d", minutes, seconds)
-}
-
-func roundTo2DecimalPlaces(floatNumber float64) float64 {
-	return math.Round(floatNumber*100) / 100
+	return rank, err
 }
