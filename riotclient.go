@@ -7,37 +7,43 @@ package main
 */
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"main/limiter"
 	"net/http"
 	"regexp"
-	"strings"
 	"time"
 )
 
 const (
 	// This api key is for devs only. Change or research before you send to others
-	TOOL_API_KEY           = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
-	EU_HOST                = "https://europe.api.riotgames.com"
-	API_GET_PUUID          = "/riot/account/v1/accounts/by-riot-id/%s/%s"
-	API_GET_LAST_GAME_ID   = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
-	GAME_ID_REGEX          = "[^\"\\[]+"
-	API_GET_LAST_GAME_INFO = "/lol/match/v5/matches/%s"
-	API_GET_RANK           = "https://eun1.api.riotgames.com/lol/league/v4/entries/by-summoner/%s"
+	DEV_API_KEY      = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
+	RIOT_SERVER_EU   = "https://europe.api.riotgames.com"
+	RIOT_SERVER_EUNE = "https://eun1.api.riotgames.com"
+	RIOT_SERVER_EUW  = "https://euw1.api.riotgames.com"
+)
+
+const (
+	PUUID_ENDPOINT         = "/riot/account/v1/accounts/by-riot-id/%s/%s"
+	LAST_GAME_ID_ENDPOINT  = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
+	GAME_DATA_ENDPOINT     = "/lol/match/v5/matches/%s"
+	SUMMONER_DATA_ENDPOINT = "/lol/league/v4/entries/by-summoner/%s"
+)
+
+const (
+	GAME_ID_REGEX = "[^\"\\[]+"
 )
 
 /*
-	The default client + 30 sec timeout
+The default client + 30 sec timeout
 */
-var httpClient = &http.Client{Timeout: 30*time.Second}
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
 /*
-	Defines the riot API limits.
-	20 requests every 1 seconds.
-	100 requests every 2 minutes.
-	As there are multiple limitations those limits are the most strict ones, ignoring endpoint specific ones
+Defines the riot API limits.
+20 requests every 1 seconds.
+100 requests every 2 minutes.
+As there are multiple limitations those limits are the most strict ones, ignoring endpoint specific ones
 */
 func addRiotAPILimits() {
 	limiter.AddLimit(20, time.Second)
@@ -49,7 +55,7 @@ func sendRiotAPIRequest(requestType string, url string) (string, error) {
 	if err != nil {
 		return "", errors.New("error in creating a request [" + requestType + ", " + url + "] - " + err.Error())
 	}
-	request.Header.Add("X-Riot-Token", TOOL_API_KEY)
+	request.Header.Add("X-Riot-Token", DEV_API_KEY)
 
 	response, err := limiter.SendRequest(httpClient, request)
 	if err != nil {
@@ -61,7 +67,7 @@ func sendRiotAPIRequest(requestType string, url string) (string, error) {
 
 func GetPUUID(gameName string, tagLine string) (string, error) {
 	requestType := "GET"
-	url := EU_HOST + API_GET_PUUID
+	url := RIOT_SERVER_EU + PUUID_ENDPOINT
 	url = fmt.Sprintf(url, gameName, tagLine)
 
 	response, err := sendRiotAPIRequest(requestType, url)
@@ -69,23 +75,18 @@ func GetPUUID(gameName string, tagLine string) (string, error) {
 		return "", err
 	}
 
-	dec := json.NewDecoder(strings.NewReader(response))
-
-	type ResponseObject struct {
-		PUUID string `json:"puuid"`
-	}
-	var respObject ResponseObject
-	err = dec.Decode(&respObject)
+	var puuid PUUID
+	err = JSONToObject(response, &puuid)
 	if err != nil {
-		return "", errors.New("error while decoding json string: " + err.Error())
+		return "", err
 	}
 
-	return respObject.PUUID, nil
+	return puuid.String, nil
 }
 
 func GetLastGameID(PUUID string) (string, error) {
 	requestType := "GET"
-	url := EU_HOST + API_GET_LAST_GAME_ID
+	url := RIOT_SERVER_EU + LAST_GAME_ID_ENDPOINT
 	url = fmt.Sprintf(url, PUUID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
@@ -96,41 +97,44 @@ func GetLastGameID(PUUID string) (string, error) {
 	return regexp.MustCompile(GAME_ID_REGEX).FindString(response), nil
 }
 
-/*
-	Useful:
-
-- Date & time
-- Champion
-- Rank
-- Outcome
-- DMG
-- Game duration
-- CS & Gold
-- KDA
-
-*/
-func GetLastGameInfo(gameID string) (string, error) {
+func getGameData(gameID string) (GameData, error) {
 	requestType := "GET"
-	url := EU_HOST + API_GET_LAST_GAME_INFO
+	url := RIOT_SERVER_EU + GAME_DATA_ENDPOINT
 	url = fmt.Sprintf(url, gameID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
-		return "", err
+		return GameData{}, err
 	}
 
-	return response, nil
+	var data GameData
+	err = JSONToObject(response, &data)
+
+	return data, err
 }
 
-func GetRank(summonerID string) (string, error) {
+func getRank(summonerID string) (Rank, error) {
 	requestType := "GET"
-	url := API_GET_RANK
+	url := RIOT_SERVER_EUNE + SUMMONER_DATA_ENDPOINT
 	url = fmt.Sprintf(url, summonerID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
-		return "", err
+		return Rank{}, err
 	}
 
-	return response, nil
+	var ranks []Rank
+	err = JSONToObject(response, &ranks)
+	if err != nil {
+		return Rank{}, err
+	}
+
+	for i := 0; i < len(ranks); i++ {
+		if ranks[i].QueueType == "RANKED_SOLO_5x5" {
+			return ranks[i], nil
+		}
+	}
+
+	// if no soloqueue rank is found
+	return Rank{Name: "UNRANKED", Tier: ""}, nil
 }
