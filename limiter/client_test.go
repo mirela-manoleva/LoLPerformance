@@ -7,11 +7,11 @@ import (
 )
 
 /*
-	The default client + 30 sec timeout
+The default client + 30 sec timeout
 */
-var httpClient = &http.Client{Timeout: 30*time.Second}
+var httpClient = &http.Client{Timeout: 30 * time.Second}
 
-func TestRegRequestPass(t *testing.T){
+func TestRegRequestPass(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -27,7 +27,7 @@ func TestRegRequestPass(t *testing.T){
 		t.Fatal("error creating a request [" + requestType + ", " + url + "] - " + err.Error())
 	}
 
-	for i := 0; i < limitRequests - 1; i++ {
+	for i := 0; i < limitRequests-1; i++ {
 		addRecord(time.Now())
 	}
 
@@ -37,7 +37,7 @@ func TestRegRequestPass(t *testing.T){
 	}
 }
 
-func TestRegRequestPassRealRequests(t *testing.T){
+func TestRegRequestPassRealRequests(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -61,7 +61,7 @@ func TestRegRequestPassRealRequests(t *testing.T){
 	}
 }
 
-func TestRegRequestFailRealRequests(t *testing.T){
+func TestRegRequestFailRealRequests(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -83,7 +83,7 @@ func TestRegRequestFailRealRequests(t *testing.T){
 		}
 	}
 
-	response , err := SendRequest(httpClient, request)
+	response, err := SendRequest(httpClient, request)
 	if err == nil {
 		t.Fatal("A request succeeded when it shouldn't have.\n" + getState())
 	}
@@ -92,7 +92,7 @@ func TestRegRequestFailRealRequests(t *testing.T){
 	}
 }
 
-func TestRegRequestFail(t *testing.T){
+func TestRegRequestFail(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -111,7 +111,7 @@ func TestRegRequestFail(t *testing.T){
 	if err != nil {
 		t.Fatal("error creating a request [" + requestType + ", " + url + "] - " + err.Error())
 	}
-	response , err := SendRequest(httpClient, request)
+	response, err := SendRequest(httpClient, request)
 	if err == nil {
 		t.Fatal("A request succeeded when it shouldn't have.\n" + getState())
 	}
@@ -120,7 +120,7 @@ func TestRegRequestFail(t *testing.T){
 	}
 }
 
-func TestRegRequestTwoLimitsPass(t *testing.T){
+func TestRegRequestTwoLimitsPass(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -136,11 +136,11 @@ func TestRegRequestTwoLimitsPass(t *testing.T){
 	limit1Period := 10 * time.Millisecond
 	AddLimit(limit1Requests, limit1Period)
 
-	limit2Requests := 2 * limit1Requests - 1
+	limit2Requests := 2*limit1Requests - 1
 	limit2Period := 2 * limit1Period
 	AddLimit(limit2Requests, limit2Period)
 
-	for i := 0; i < limit1Requests - 1; i++ {
+	for i := 0; i < limit1Requests-1; i++ {
 		addRecord(time.Now())
 	}
 
@@ -151,7 +151,7 @@ func TestRegRequestTwoLimitsPass(t *testing.T){
 
 	clearAllRecords()
 
-	for i := 0; i < limit2Requests - 1; i++ {
+	for i := 0; i < limit2Requests-1; i++ {
 		addRecord(time.Now()) // Technically can break the first limit but we only care for the second one
 	}
 
@@ -162,7 +162,7 @@ func TestRegRequestTwoLimitsPass(t *testing.T){
 	}
 }
 
-func TestRegRequestTwoLimitsFail(t *testing.T){
+func TestRegRequestTwoLimitsFail(t *testing.T) {
 	clearAllRecords()
 	ClearAllLimits()
 
@@ -178,7 +178,7 @@ func TestRegRequestTwoLimitsFail(t *testing.T){
 	limit1Period := 10 * time.Millisecond
 	AddLimit(limit1Requests, limit1Period)
 
-	limit2Requests := 2 * limit1Requests - 1
+	limit2Requests := 2*limit1Requests - 1
 	limit2Period := 2 * limit1Period
 	AddLimit(limit2Requests, limit2Period)
 

@@ -57,7 +57,7 @@ func GetGameRecord(gameID string, PUUID string) (PlayerGameData, Rank, error) {
 	data.gameLengthSeconds = player.Challenges.GameLength
 	data.damagePerMinute = player.Challenges.DPM
 	data.goldPerMinute = player.Challenges.GPM
-	data.csPerMinute = float64(player.CS) / player.Challenges.GameLength
+	data.csPerMinute = (float64(player.CS) / player.Challenges.GameLength) * 60
 
 	rank, err := getRank(player.SummonerID)
 

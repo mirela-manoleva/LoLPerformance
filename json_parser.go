@@ -55,8 +55,8 @@ Used when parsing the response from SUMMONER_DATA_ENDPOINT.
 */
 type Rank struct {
 	QueueType string `json:"queueType"`
-	Name      string `json:"rank,omitempty"`
-	Tier      string `json:"tier,omitempty"`
+	Number    string `json:"rank,omitempty"`
+	Name      string `json:"tier,omitempty"`
 }
 
 func JSONToObject(jsonStr string, object any) error {

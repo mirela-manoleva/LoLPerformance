@@ -11,34 +11,35 @@ import (
 )
 
 /*
-	Keeps track of all user-defined limits. Can be edited with AddLimit, RemoveLimit and ClearAllLimits.
-	It is intended to be a set of sorted limits.
-	Manually appending or modifying it outside of the 3 intended functions will result in undefined behaviour.
+Keeps track of all user-defined limits. Can be edited with AddLimit, RemoveLimit and ClearAllLimits.
+It is intended to be a set of sorted limits.
+Manually appending or modifying it outside of the 3 intended functions will result in undefined behaviour.
 */
 var requestLimits []limit
 
 /*
-	Type to encapsulate the definition of an API Limit.
+Type to encapsulate the definition of an API Limit.
 */
 type limit struct {
-	requestCount		int
-	period					time.Duration
+	requestCount int
+	period       time.Duration
 }
 
 /*
-	Helper function to reduce code size.
+Helper function to reduce code size.
 */
 func (main limit) isEqual(other limit) bool {
 	return main.period == other.period && main.requestCount == other.requestCount
 }
 
 /*
-	Adds a limit. Calls to the SendRequest() will abide to the limit.
+Adds a limit. Calls to the SendRequest() will abide to the limit.
 */
 func AddLimit(requestCount int, period time.Duration) {
 	limit := limit{requestCount, period}
 	i := 0
-	for ; i < len(requestLimits) && limit.period > requestLimits[i].period; i++ {}
+	for ; i < len(requestLimits) && limit.period > requestLimits[i].period; i++ {
+	}
 
 	// Do not store copies
 	if i < len(requestLimits) && limit.isEqual(requestLimits[i]) {
@@ -49,7 +50,7 @@ func AddLimit(requestCount int, period time.Duration) {
 }
 
 /*
-	Removes previously declared limit.
+Removes previously declared limit.
 */
 func RemoveLimit(lim limit) {
 	for i := 0; i < len(requestLimits); i++ {
@@ -61,7 +62,7 @@ func RemoveLimit(lim limit) {
 }
 
 /*
-	Removes all previously declared limits.
+Removes all previously declared limits.
 */
 func ClearAllLimits() {
 	requestLimits = nil

@@ -33,7 +33,7 @@ func TestSaveLoadRequestsMade(t *testing.T) {
 	}
 
 	areDifferent := false
-	defer func () {
+	defer func() {
 		if areDifferent {
 			t.Log("Differences before and after the save-load functions.\n")
 			t.Log("Records before the operations:\n" + recordsToString(copyRecords))
@@ -63,7 +63,7 @@ func TestSaveLoadCanExec(t *testing.T) {
 
 	AddLimit(numberOfRequests, time.Second)
 
-	for i := 0; i < numberOfRequests - 1; i++ {
+	for i := 0; i < numberOfRequests-1; i++ {
 		addRecord(time.Now())
 	}
 
@@ -92,7 +92,7 @@ func TestSaveLoadCannotExec(t *testing.T) {
 
 	AddLimit(numberOfRequests, time.Second)
 
-	for i := 0; i < numberOfRequests - 1; i++ {
+	for i := 0; i < numberOfRequests-1; i++ {
 		addRecord(time.Now())
 	}
 

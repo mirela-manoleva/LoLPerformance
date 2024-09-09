@@ -81,6 +81,10 @@ func GetPUUID(gameName string, tagLine string) (string, error) {
 		return "", err
 	}
 
+	if len(puuid.String) == 0 {
+		return "", fmt.Errorf("didn't find player with name %s:%s", gameName, tagLine)
+	}
+
 	return puuid.String, nil
 }
 
@@ -136,5 +140,5 @@ func getRank(summonerID string) (Rank, error) {
 	}
 
 	// if no soloqueue rank is found
-	return Rank{Name: "UNRANKED", Tier: ""}, nil
+	return Rank{Name: "UNRANKED", Number: ""}, nil
 }
