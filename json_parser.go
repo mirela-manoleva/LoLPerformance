@@ -2,7 +2,7 @@ package main
 
 /*
 	File description:
-	Defines the functionality to parse the JSON responses from the coming from riotclient.go to Go structures
+	Defines the functionality to parse the JSON responses coming from riotclient.go to Go structures
 */
 
 import (
