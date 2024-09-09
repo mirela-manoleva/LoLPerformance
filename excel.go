@@ -33,7 +33,7 @@ func CreateGameRecordFile(fileName string, sheetName string) (Err error) {
 		return fmt.Errorf("error creating new file \"%s\" - %s", fileName, err.Error())
 	}
 
-	if err := setFirstRow(file, sheetName); err != nil {
+	if err := setColumnNames(file, sheetName); err != nil {
 		return fmt.Errorf("error creating new file \"%s\" - %s", fileName, err.Error())
 	}
 
@@ -69,7 +69,7 @@ func AddSheet(fileName string, sheetName string) (Err error) {
 		return fmt.Errorf("error adding a new sheet \"%s\" - %s", sheetName, err.Error())
 	}
 
-	if err := setFirstRow(file, sheetName); err != nil {
+	if err := setColumnNames(file, sheetName); err != nil {
 		return fmt.Errorf("error adding a new sheet \"%s\" - %s", sheetName, err.Error())
 	}
 
@@ -83,7 +83,7 @@ func AddSheet(fileName string, sheetName string) (Err error) {
 /*
 Adds a new row with all the game information and formats the data.
 */
-func AddGameRecord(fileName string, sheetName string, game GameData, summoner SummonerData) (Err error) {
+func AddGameRecord(fileName string, sheetName string, game PlayerGameData, summoner Rank) (Err error) {
 	file, err := excelize.OpenFile(fileName)
 	if err != nil {
 		return err
@@ -106,20 +106,20 @@ func AddGameRecord(fileName string, sheetName string, game GameData, summoner Su
 	}
 	columnDateIndex-- // Will be traversing an array with it.
 
-	cols, err := file.GetCols(sheetName)
+	columns, err := file.GetCols(sheetName)
 	if err != nil {
 		return fmt.Errorf("error adding a new game record - %s", err.Error())
 	}
 
 	var row string
-	for i := 0; i < len(cols[columnDateIndex]); i++ {
-		if len(cols[columnDateIndex][i]) == 0 {
+	for i := 0; i < len(columns[columnDateIndex]); i++ {
+		if len(columns[columnDateIndex][i]) == 0 {
 			row = strconv.Itoa(i + 1)
 			break
 		}
 	}
 	if row == "" { // all columns so far are full
-		row = strconv.Itoa(len(cols[columnDateIndex]) + 1)
+		row = strconv.Itoa(len(columns[columnDateIndex]) + 1)
 	}
 
 	err = setValuesNewRow(file, sheetName, row, game, summoner)

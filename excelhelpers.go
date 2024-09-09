@@ -17,6 +17,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/xuri/excelize/v2"
@@ -69,6 +70,23 @@ func outcomeToString(isWin bool) string {
 	}
 }
 
+func roleFormatting(role string) string {
+	if role == "TOP" {
+		return "Top"
+	}
+	if role == "JUNGLE" {
+		return "Jungle"
+	}
+	if role == "MIDDLE" {
+		return "Mid"
+	}
+	if role == "BOTTOM" {
+		return "ADC"
+	}
+
+	return "Support"
+}
+
 /*
 Used when creating new sheet.
 Sets the column width.
@@ -96,7 +114,7 @@ func setColumnFormat(file *excelize.File, sheetName string) error {
 Used when creating new sheet.
 Sets the header of the sheet with all the column names.
 */
-func setFirstRow(file *excelize.File, sheetName string) error {
+func setColumnNames(file *excelize.File, sheetName string) error {
 	firstCell := columnFirst + rowFirst
 	lastCell := columnLast + rowFirst
 
@@ -121,13 +139,14 @@ func setFirstRow(file *excelize.File, sheetName string) error {
 /*
 Used when adding a new row.
 */
-func setValuesNewRow(file *excelize.File, sheetName string, row string, game GameData, summoner SummonerData) error {
+func setValuesNewRow(file *excelize.File, sheetName string, row string, game PlayerGameData, rank Rank) error {
 	err := file.SetCellValue(sheetName, columnDate+row, time.Unix(0, game.unixStartTimestamp*int64(time.Millisecond)))
 	if err != nil {
 		return fmt.Errorf("error when setting date on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnRank+row, summoner.rank)
+	formatedRank := rank.Name[:1] + strings.ToLower(rank.Name[1:]) + " " + rank.Number
+	err = file.SetCellStr(sheetName, columnRank+row, formatedRank)
 	if err != nil {
 		return fmt.Errorf("error when setting rank on row %s - %s", row, err.Error())
 	}
@@ -137,12 +156,12 @@ func setValuesNewRow(file *excelize.File, sheetName string, row string, game Gam
 		return fmt.Errorf("error when setting queue type on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnOutcome+row, outcomeToString(game.isWin))
+	err = file.SetCellStr(sheetName, columnOutcome+row, outcomeToString(game.win))
 	if err != nil {
 		return fmt.Errorf("error when setting outcome on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnRole+row, game.role)
+	err = file.SetCellStr(sheetName, columnRole+row, roleFormatting(game.role))
 	if err != nil {
 		return fmt.Errorf("error when setting role on row %s - %s", row, err.Error())
 	}
