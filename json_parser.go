@@ -2,7 +2,7 @@ package main
 
 /*
 	File description:
-	Defines the functionality to parse JSON strings to Go objects.
+	Defines the functionality to parse the JSON responses from the coming from riotclient.go to Go structures
 */
 
 import (
@@ -54,8 +54,9 @@ Struct that holds the data about player's rank.
 Used when parsing the response from SUMMONER_DATA_ENDPOINT.
 */
 type Rank struct {
-	Name string `json:"rank"`
-	Tier string `json:"tier"`
+	QueueType string `json:"queueType"`
+	Name      string `json:"rank,omitempty"`
+	Tier      string `json:"tier,omitempty"`
 }
 
 func JSONToObject(jsonStr string, object any) error {

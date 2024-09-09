@@ -20,6 +20,7 @@ const (
 	DEV_API_KEY      = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
 	RIOT_SERVER_EU   = "https://europe.api.riotgames.com"
 	RIOT_SERVER_EUNE = "https://eun1.api.riotgames.com"
+	RIOT_SERVER_EUW  = "https://euw1.api.riotgames.com"
 )
 
 const (
@@ -117,16 +118,23 @@ func getRank(summonerID string) (Rank, error) {
 	url := RIOT_SERVER_EUNE + SUMMONER_DATA_ENDPOINT
 	url = fmt.Sprintf(url, summonerID)
 
-	println(url)
-
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
 		return Rank{}, err
 	}
-	println(response)
 
-	var rank Rank
-	err = JSONToObject(response, &rank)
+	var ranks []Rank
+	err = JSONToObject(response, &ranks)
+	if err != nil {
+		return Rank{}, err
+	}
 
-	return rank, err
+	for i := 0; i < len(ranks); i++ {
+		if ranks[i].QueueType == "RANKED_SOLO_5x5" {
+			return ranks[i], nil
+		}
+	}
+
+	// if no soloqueue rank is found
+	return Rank{Name: "UNRANKED", Tier: ""}, nil
 }
