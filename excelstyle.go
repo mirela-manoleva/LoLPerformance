@@ -43,7 +43,7 @@ var columnNames = []string{
 	"Feeling after game", "Review notes",
 }
 var columnSizes = []float64{
-	13.0, 16.0, 13.0, 40.0,
+	13.0, 20.0, 13.0, 40.0,
 	12.0, 12.0, 13.0,
 	10.0, 10.0, 10.0, 10.0, 10.0,
 	13.0, 10.0, 10.0, 10.0,

@@ -10,6 +10,7 @@ var configFile = filepath.Join("config", "user_config.json")
 
 var summonerName string
 var summonerTag string
+var summonerRegion string
 var excelFile string
 
 func getConfig() error {
@@ -33,6 +34,7 @@ func getConfig() error {
 
 	summonerName = config.SummonerName
 	summonerTag = config.SummonerTag
+	summonerRegion = config.Region
 	excelFile = config.ExcelFile
 	return nil
 }
