@@ -1,6 +1,6 @@
 # LoLPerformance - What is it?
 A tool which extracts data from your last LoL game and fills it in a performance Excel table.
-It devides all of your queues in different sheets and adds some coloring depending on if a stat is good or bad.
+It divides all of your queues in different sheets and adds some coloring whether a stat is good or bad.
 Some stats (like kills or assists) are subjective so we don't touch those.
 
 # Why should you use it?
