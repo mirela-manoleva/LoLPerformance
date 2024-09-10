@@ -35,7 +35,7 @@ This function returns the queue type in a format we want for the excel table.
 Reference on them can be found here:
 https://static.developer.riotgames.com/docs/lol/queues.json
 */
-func queueToString(queueType int) string {
+func queueFormatting(queueType int) string {
 	switch queueType {
 	case 400:
 		return "Draft Pick"
@@ -62,7 +62,7 @@ func queueToString(queueType int) string {
 Riot API returns bool type.
 This function returns the outcome in a format we want for the excel table.
 */
-func outcomeToString(isWin bool) string {
+func outcomeFormatting(isWin bool) string {
 	if isWin {
 		return "Win"
 	} else {
@@ -88,10 +88,34 @@ func roleFormatting(role string) string {
 }
 
 /*
+Used if the user wants to create a new sheet in an existing file.
+*/
+func AddSheet(file *excelize.File, sheetName string) error {
+	_, err := file.NewSheet(sheetName)
+	if err != nil {
+		return err
+	}
+
+	if err := setColumnWidth(file, sheetName); err != nil {
+		return fmt.Errorf("error adding a new sheet \"%s\" - %s", sheetName, err.Error())
+	}
+
+	if err := setColumnNames(file, sheetName); err != nil {
+		return fmt.Errorf("error adding a new sheet \"%s\" - %s", sheetName, err.Error())
+	}
+
+	if err := file.Save(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+/*
 Used when creating new sheet.
 Sets the column width.
 */
-func setColumnFormat(file *excelize.File, sheetName string) error {
+func setColumnWidth(file *excelize.File, sheetName string) error {
 	for i := 0; i < len(columnNames); i++ {
 		if i >= len(columnSizes) { // Rest of the columns are left default
 			return nil
@@ -139,7 +163,7 @@ func setColumnNames(file *excelize.File, sheetName string) error {
 /*
 Used when adding a new row.
 */
-func setValuesNewRow(file *excelize.File, sheetName string, row string, game PlayerGameData, rank Rank) error {
+func setValuesNewRow(file *excelize.File, sheetName string, row string, game PlayerGameData, rank Rank, summonerName string) error {
 	err := file.SetCellValue(sheetName, columnDate+row, time.Unix(0, game.unixStartTimestamp*int64(time.Millisecond)))
 	if err != nil {
 		return fmt.Errorf("error when setting date on row %s - %s", row, err.Error())
@@ -151,12 +175,12 @@ func setValuesNewRow(file *excelize.File, sheetName string, row string, game Pla
 		return fmt.Errorf("error when setting rank on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnQueueType+row, queueToString(game.queueType))
+	err = file.SetCellStr(sheetName, columnSummonerName+row, summonerName)
 	if err != nil {
 		return fmt.Errorf("error when setting queue type on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnOutcome+row, outcomeToString(game.win))
+	err = file.SetCellStr(sheetName, columnOutcome+row, outcomeFormatting(game.win))
 	if err != nil {
 		return fmt.Errorf("error when setting outcome on row %s - %s", row, err.Error())
 	}
