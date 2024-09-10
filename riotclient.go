@@ -82,7 +82,7 @@ func GetPUUID(gameName string, tagLine string) (string, error) {
 	}
 
 	if len(puuid.String) == 0 {
-		return "", fmt.Errorf("didn't find player with name %s:%s", gameName, tagLine)
+		return "", fmt.Errorf("didn't find player with name %s#%s", gameName, tagLine)
 	}
 
 	return puuid.String, nil
@@ -119,7 +119,17 @@ func getGameData(gameID string) (GameData, error) {
 
 func getRank(summonerID string) (Rank, error) {
 	requestType := "GET"
-	url := RIOT_SERVER_EUNE + SUMMONER_DATA_ENDPOINT
+	var riot_server string
+
+	if summonerRegion == "EUNE" {
+		riot_server = RIOT_SERVER_EUNE
+	} else if summonerRegion == "EUW" {
+		riot_server = RIOT_SERVER_EUW
+	} else {
+		return Rank{}, errors.New("region is not EUW or EUNE")
+	}
+
+	url := riot_server + SUMMONER_DATA_ENDPOINT
 	url = fmt.Sprintf(url, summonerID)
 
 	response, err := sendRiotAPIRequest(requestType, url)

@@ -14,11 +14,8 @@ import (
 	"os"
 )
 
-var summonerName = "Alerim"
-var summonerTag = "EUNE"
-var gameFile = "MirelaGameStats.xlsx"
-
 func main() {
+	getConfig()
 	addRiotAPILimits()
 
 	err := limiter.LoadRequestsMade()
@@ -51,16 +48,16 @@ func main() {
 
 	gameSheet := queueFormatting(gameRecord.queueType)
 
-	if _, err := os.Stat(gameFile); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("Creating file %s with sheet %s\n", gameFile, gameSheet)
-		if err = CreateGameRecordFile(gameFile, gameSheet); err != nil {
-			panic(fmt.Sprintf("not able to create the excel file %s - %s", gameFile, err.Error()))
+	if _, err := os.Stat(excelFile); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("Creating file %s with sheet %s\n", excelFile, gameSheet)
+		if err = CreateGameRecordFile(excelFile, gameSheet); err != nil {
+			panic(fmt.Sprintf("not able to create the excel file %s - %s", excelFile, err.Error()))
 		}
 	}
 
 	fmt.Println("Adding game to sheet " + gameSheet)
-	err = AddGameRecord(gameFile, gameSheet, gameRecord, rank, summonerName+"#"+summonerTag)
+	err = AddGameRecord(excelFile, gameSheet, gameRecord, rank, summonerName+"#"+summonerTag)
 	if err != nil {
-		panic(fmt.Sprintf("not able to add the game stats to file %s, sheet %s - %s", gameFile, gameSheet, err.Error()))
+		panic(fmt.Sprintf("not able to add the game stats to file %s, sheet %s - %s", excelFile, gameSheet, err.Error()))
 	}
 }
