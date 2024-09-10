@@ -14,8 +14,8 @@ import (
 	"os"
 )
 
-var summonerName = "Lery"
-var summonerTag = "Hook"
+var summonerName = "Alerim"
+var summonerTag = "EUNE"
 var gameFile = "MirelaGameStats.xlsx"
 
 func main() {
