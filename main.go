@@ -2,10 +2,10 @@ package main
 
 // TODO:
 
-// Check naming. -> new branch prob
-// Check the limiter again.
-// Check if we need any type of concurency and if the program is concurency-safe.
-// Fix error messages.
+// Summoner name + tag + game file name, region and xslx file location should be settable in an external file.
+// Make a log file and don't panic the program.
+// Update the README.
+// move the excel file open outside of the functions
 
 import (
 	"errors"
@@ -16,8 +16,7 @@ import (
 
 var summonerName = "Alerim"
 var summonerTag = "EUNE"
-var gameFile = "Improvement.xlsx"
-var gameSheet = "Mirela"
+var gameFile = "MirelaGameStats.xlsx"
 
 func main() {
 	addRiotAPILimits()
@@ -35,13 +34,6 @@ func main() {
 		}
 	}()
 
-	if _, err := os.Stat(gameFile); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("Creating file %s\n", gameFile)
-		if err = CreateGameRecordFile(gameFile, gameSheet); err != nil {
-			panic(err)
-		}
-	}
-
 	PUUID, err := GetPUUID(summonerName, summonerTag)
 	if err != nil {
 		panic(fmt.Sprintf("not able to retrieve the puuid - %s", err.Error()))
@@ -57,9 +49,18 @@ func main() {
 		panic(fmt.Sprintf("not able to retrieve the game record for game %s and PUUID %s - %s", lastGameID, PUUID, err.Error()))
 	}
 
-	fmt.Println("Adding game")
-	err = AddGameRecord(gameFile, gameSheet, gameRecord, rank)
+	gameSheet := queueFormatting(gameRecord.queueType)
+
+	if _, err := os.Stat(gameFile); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("Creating file %s with sheet %s\n", gameFile, gameSheet)
+		if err = CreateGameRecordFile(gameFile, gameSheet); err != nil {
+			panic(fmt.Sprintf("not able to create the excel file %s - %s", gameFile, err.Error()))
+		}
+	}
+
+	fmt.Println("Adding game to sheet " + gameSheet)
+	err = AddGameRecord(gameFile, gameSheet, gameRecord, rank, summonerName+"#"+summonerTag)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("not able to add the game stats to file %s, sheet %s - %s", gameFile, gameSheet, err.Error()))
 	}
 }

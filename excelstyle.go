@@ -10,24 +10,24 @@ import (
 )
 
 const (
-	columnDate       = "A"
-	columnRank       = "B"
-	columnGoal       = "C"
-	columnQueueType  = "D"
-	columnOutcome    = "E"
-	columnRole       = "F"
-	columnChampion   = "G"
-	columnKills      = "H"
-	columnDeaths     = "I"
-	columnAssists    = "J"
-	columnKP         = "K"
-	columnKDA        = "L"
-	columnGameLength = "M"
-	columnDPM        = "N"
-	columnGPM        = "O"
-	columnCSPM       = "P"
-	columnFeeling    = "Q"
-	columnReview     = "R"
+	columnDate         = "A"
+	columnSummonerName = "B"
+	columnRank         = "C"
+	columnGoal         = "D"
+	columnOutcome      = "E"
+	columnRole         = "F"
+	columnChampion     = "G"
+	columnKills        = "H"
+	columnDeaths       = "I"
+	columnAssists      = "J"
+	columnKP           = "K"
+	columnKDA          = "L"
+	columnGameLength   = "M"
+	columnDPM          = "N"
+	columnGPM          = "O"
+	columnCSPM         = "P"
+	columnFeeling      = "Q"
+	columnReview       = "R"
 )
 
 const (
@@ -36,15 +36,15 @@ const (
 )
 
 var columnNames = []string{
-	"Date", "Rank", "Learning Goal",
-	"Queue Type", "Outcome", "Role", "Champion",
+	"Date", "Summoner name", "Rank", "Learning Goal",
+	"Outcome", "Role", "Champion",
 	"Kills", "Deaths", "Assist", "KP", "KDA",
 	"Game Length", "DPM", "GPM", "CSPM",
 	"Feeling after game", "Review notes",
 }
 var columnSizes = []float64{
-	13.0, 13.0, 50.0,
-	13.0, 10.0, 10.0, 13.0,
+	13.0, 16.0, 13.0, 40.0,
+	12.0, 12.0, 13.0,
 	10.0, 10.0, 10.0, 10.0, 10.0,
 	13.0, 10.0, 10.0, 10.0,
 	75.0, 250.0,
