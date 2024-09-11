@@ -19,6 +19,12 @@ const (
 	RIOT_SERVER_EU   = "https://europe.api.riotgames.com"
 	RIOT_SERVER_EUNE = "https://eun1.api.riotgames.com"
 	RIOT_SERVER_EUW  = "https://euw1.api.riotgames.com"
+
+	LAST_GAME_ID_ENDPOINT  = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
+	GAME_DATA_ENDPOINT     = "/lol/match/v5/matches/%s"
+	PUUID_ENDPOINT         = "/riot/account/v1/accounts/by-riot-id/%s/%s"
+	SUMMONER_DATA_ENDPOINT = "/lol/summoner/v4/summoners/by-puuid/%s"
+	RANKED_DATA_ENDPOINT   = "/lol/league/v4/entries/by-summoner/%s"
 )
 
 /*

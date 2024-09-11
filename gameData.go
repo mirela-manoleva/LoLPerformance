@@ -9,19 +9,14 @@ import (
 
 /*
 	File description:
-	Defines the functionality to parse the JSON responses coming from riotclient.go to Go structures
+	Struct to fetch data from the Riot API about a specific game.
+	Helper to get ID of the last game a player played.
 */
 
 const (
-	LAST_GAME_ID_ENDPOINT = "/lol/match/v5/matches/by-puuid/%s/ids?count=1"
-	GAME_DATA_ENDPOINT    = "/lol/match/v5/matches/"
-	GAME_ID_REGEX         = "[^\"\\[]+"
+	GAME_ID_REGEX = "[^\"\\[]+"
 )
 
-/*
-Struct that holds the data about a specific LoL game.
-Used when parsing the response from GAME_DATA_ENDPOINT.
-*/
 type GameData struct {
 	Metadata struct {
 		ParticipantsPUUID []string `json:"participants"`
@@ -51,7 +46,8 @@ type GameData struct {
 
 func (game *GameData) GetGameData(gameID string) error {
 	requestType := "GET"
-	url := RIOT_SERVER_EU + GAME_DATA_ENDPOINT + gameID
+	url := RIOT_SERVER_EU + GAME_DATA_ENDPOINT
+	url = fmt.Sprintf(url, gameID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {

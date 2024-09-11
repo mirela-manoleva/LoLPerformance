@@ -16,12 +16,6 @@ import (
 
 var userConfigFile = filepath.Join("config", "user_config.json")
 
-const (
-	PUUID_ENDPOINT         = "/riot/account/v1/accounts/by-riot-id/%s/%s"
-	SUMMONER_DATA_ENDPOINT = "/lol/summoner/v4/summoners/by-puuid/"
-	RANKED_DATA_ENDPOINT   = "/lol/league/v4/entries/by-summoner/"
-)
-
 type UserData struct {
 	// From userConfigFile
 	SummonerName string `json:"summonerName,omitempty"`
@@ -111,7 +105,8 @@ func (user *UserData) getSummonerID() error {
 	} else {
 		return fmt.Errorf("region %s is not EUW or EUNE", user.Region)
 	}
-	url := riot_server + SUMMONER_DATA_ENDPOINT + user.PUUID
+	url := riot_server + SUMMONER_DATA_ENDPOINT
+	url = fmt.Sprintf(url, user.PUUID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
@@ -148,7 +143,8 @@ func (user *UserData) getRank() error {
 		return fmt.Errorf("region %s is not EUW or EUNE", user.Region)
 	}
 
-	url := riot_server + RANKED_DATA_ENDPOINT + user.SummonerID
+	url := riot_server + RANKED_DATA_ENDPOINT
+	url = fmt.Sprintf(url, user.SummonerID)
 
 	response, err := sendRiotAPIRequest(requestType, url)
 	if err != nil {
