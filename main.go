@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	loadAPIKey()
 	addRiotAPILimits()
 
 	if err := limiter.LoadRequestsMade(); err != nil {

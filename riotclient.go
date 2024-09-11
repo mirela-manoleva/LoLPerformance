@@ -10,12 +10,15 @@ import (
 	"fmt"
 	"main/limiter"
 	"net/http"
+	"os"
 	"time"
 )
 
+const apiKeyFile = "config/api.key"
+
+var RIOT_API_KEY string
+
 const (
-	// This api key is for devs only. Change or research before you send to others
-	DEV_API_KEY      = "RGAPI-5477a09f-ed9a-482f-b672-a364ce6d8015"
 	RIOT_SERVER_EU   = "https://europe.api.riotgames.com"
 	RIOT_SERVER_EUNE = "https://eun1.api.riotgames.com"
 	RIOT_SERVER_EUW  = "https://euw1.api.riotgames.com"
@@ -43,6 +46,16 @@ func addRiotAPILimits() {
 	limiter.AddLimit(100, 2*time.Minute)
 }
 
+func loadAPIKey() error {
+	content, err := os.ReadFile(apiKeyFile)
+	if err != nil {
+		return err
+	}
+
+	RIOT_API_KEY = string(content)
+	return nil
+}
+
 /*
 Creates an HTTP request to a riot server.
 Adds the API key information in the header.
@@ -52,7 +65,7 @@ func sendRiotAPIRequest(requestType string, url string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error in creating a request [%s, %s] - %s", requestType, url, err.Error())
 	}
-	request.Header.Add("X-Riot-Token", DEV_API_KEY)
+	request.Header.Add("X-Riot-Token", RIOT_API_KEY)
 
 	response, err := limiter.SendRequest(httpClient, request)
 	if err != nil {
