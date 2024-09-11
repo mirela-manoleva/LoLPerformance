@@ -15,49 +15,44 @@ import (
 )
 
 func main() {
-	getConfig()
 	addRiotAPILimits()
 
-	err := limiter.LoadRequestsMade()
-	if err != nil {
+	if err := limiter.LoadRequestsMade(); err != nil {
 		fmt.Println("Couldn't load previous records - " + err.Error())
 	}
 
 	defer func() {
-		err = limiter.SaveRequestsMade()
 		// Should also add option for retry
-		if err != nil {
+		if err := limiter.SaveRequestsMade(); err != nil {
 			panic("Couldn't save records. Please wait for 120 seconds before starting the program again - " + err.Error())
 		}
 	}()
 
-	PUUID, err := GetPUUID(summonerName, summonerTag)
-	if err != nil {
-		panic(fmt.Sprintf("not able to retrieve the puuid - %s", err.Error()))
+	var user UserData
+	if err := user.FetchData(); err != nil {
+		panic(fmt.Sprintf("error fetching data for user %s", err.Error()))
 	}
 
-	lastGameID, err := GetLastGameID(PUUID)
+	var game GameData
+	lastGameID, err := getLastGameID(user.PUUID)
 	if err != nil {
-		panic(fmt.Sprintf("not able to retrieve the last game IDs for PUUID %s - %s", PUUID, err.Error()))
+		panic(fmt.Sprintf("not able to retrieve the last game IDs for PUUID %s - %s", user.PUUID, err.Error()))
+	}
+	if err := game.GetGameData(lastGameID); err != nil {
+		panic(fmt.Sprintf("not able to retrieve the game data for game %s - %s", lastGameID, err.Error()))
 	}
 
-	gameRecord, rank, err := GetGameRecord(lastGameID, PUUID)
-	if err != nil {
-		panic(fmt.Sprintf("not able to retrieve the game record for game %s and PUUID %s - %s", lastGameID, PUUID, err.Error()))
-	}
-
-	gameSheet := queueFormatting(gameRecord.queueType)
-
-	if _, err := os.Stat(excelFile); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("Creating file %s with sheet %s\n", excelFile, gameSheet)
-		if err = CreateGameRecordFile(excelFile, gameSheet); err != nil {
-			panic(fmt.Sprintf("not able to create the excel file %s - %s", excelFile, err.Error()))
+	gameSheet := queueFormatting(game.Info.QueueID)
+	if _, err := os.Stat(user.ExcelFile); errors.Is(err, os.ErrNotExist) {
+		fmt.Printf("Creating file %s with sheet %s\n", user.ExcelFile, gameSheet)
+		if err = CreateGameRecordFile(user.ExcelFile, gameSheet); err != nil {
+			panic(fmt.Sprintf("not able to create the excel file %s - %s", user.ExcelFile, err.Error()))
 		}
 	}
 
 	fmt.Println("Adding game to sheet " + gameSheet)
-	err = AddGameRecord(excelFile, gameSheet, gameRecord, rank, summonerName+"#"+summonerTag)
+	err = AddGameRecord(user.ExcelFile, gameSheet, game, user)
 	if err != nil {
-		panic(fmt.Sprintf("not able to add the game stats to file %s, sheet %s - %s", excelFile, gameSheet, err.Error()))
+		panic(fmt.Sprintf("not able to add the game stats to file %s, sheet %s - %s", user.ExcelFile, gameSheet, err.Error()))
 	}
 }

@@ -47,7 +47,7 @@ func CreateGameRecordFile(fileName string, sheetName string) (Err error) {
 /*
 Adds a new row with all the game information and formats the data.
 */
-func AddGameRecord(fileName string, sheetName string, game PlayerGameData, rank Rank, summonerName string) (Err error) {
+func AddGameRecord(fileName string, sheetName string, game GameData, user UserData) (Err error) {
 	file, err := excelize.OpenFile(fileName)
 	if err != nil {
 		return err
@@ -98,7 +98,7 @@ func AddGameRecord(fileName string, sheetName string, game PlayerGameData, rank 
 		}
 	}
 
-	err = setValuesNewRow(file, sheetName, row, game, rank, summonerName)
+	err = setValuesNewRow(file, sheetName, row, game, user)
 	if err != nil {
 		return err
 	}

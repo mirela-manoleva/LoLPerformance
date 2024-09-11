@@ -30,64 +30,6 @@ const (
 )
 
 /*
-Riot API returns a number as a queue type.
-This function returns the queue type in a format we want for the excel table.
-Reference on them can be found here:
-https://static.developer.riotgames.com/docs/lol/queues.json
-*/
-func queueFormatting(queueType int) string {
-	switch queueType {
-	case 400:
-		return "Draft Pick"
-	case 420:
-		return "Ranked Solo"
-	case 430:
-		return "Blind Pick"
-	case 440:
-		return "Ranked Flex"
-	case 450:
-		return "ARAM"
-	case 490:
-		return "Quickplay"
-	case 700:
-		return "Clash"
-	case 720:
-		return "ARAM Clash"
-	default:
-		return "Other"
-	}
-}
-
-/*
-Riot API returns bool type.
-This function returns the outcome in a format we want for the excel table.
-*/
-func outcomeFormatting(isWin bool) string {
-	if isWin {
-		return "Win"
-	} else {
-		return "Loss"
-	}
-}
-
-func roleFormatting(role string) string {
-	if role == "TOP" {
-		return "Top"
-	}
-	if role == "JUNGLE" {
-		return "Jungle"
-	}
-	if role == "MIDDLE" {
-		return "Mid"
-	}
-	if role == "BOTTOM" {
-		return "ADC"
-	}
-
-	return "Support"
-}
-
-/*
 Used if the user wants to create a new sheet in an existing file.
 */
 func AddSheet(file *excelize.File, sheetName string) error {
@@ -163,80 +105,95 @@ func setColumnNames(file *excelize.File, sheetName string) error {
 /*
 Used when adding a new row.
 */
-func setValuesNewRow(file *excelize.File, sheetName string, row string, game PlayerGameData, rank Rank, summonerName string) error {
-	err := file.SetCellValue(sheetName, columnDate+row, time.Unix(0, game.unixStartTimestamp*int64(time.Millisecond)))
+func setValuesNewRow(file *excelize.File, sheetName string, row string, game GameData, user UserData) error {
+	participantIndex := -1
+	for index, PUUID := range game.Metadata.ParticipantsPUUID {
+		if PUUID == user.PUUID {
+			participantIndex = index
+			break
+		}
+	}
+	if participantIndex == -1 {
+		return fmt.Errorf("couldn't find player PUUID [%s] in participants array", user.PUUID)
+	}
+
+	userIngameStats := game.Info.ParticipantData[participantIndex]
+
+	err := file.SetCellValue(sheetName, columnDate+row, time.Unix(0, game.Info.GameStartTimestamp*int64(time.Millisecond)))
 	if err != nil {
 		return fmt.Errorf("error when setting date on row %s - %s", row, err.Error())
 	}
 
-	formatedRank := rank.Name[:1] + strings.ToLower(rank.Name[1:]) + " " + rank.Number
+	formatedRank := user.Tier[:1] + strings.ToLower(user.Tier[1:]) + " " + user.Rank
 	err = file.SetCellStr(sheetName, columnRank+row, formatedRank)
 	if err != nil {
 		return fmt.Errorf("error when setting rank on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnSummonerName+row, summonerName)
+	err = file.SetCellStr(sheetName, columnSummonerName+row, user.SummonerName+"#"+user.SummonerTag)
 	if err != nil {
 		return fmt.Errorf("error when setting queue type on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnOutcome+row, outcomeFormatting(game.win))
+	err = file.SetCellStr(sheetName, columnOutcome+row, outcomeFormatting(userIngameStats.Win))
 	if err != nil {
 		return fmt.Errorf("error when setting outcome on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnRole+row, roleFormatting(game.role))
+	err = file.SetCellStr(sheetName, columnRole+row, roleFormatting(userIngameStats.TeamPosition))
 	if err != nil {
 		return fmt.Errorf("error when setting role on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellStr(sheetName, columnChampion+row, game.champion)
+	err = file.SetCellStr(sheetName, columnChampion+row, userIngameStats.Champion)
 	if err != nil {
 		return fmt.Errorf("error when setting champion on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellInt(sheetName, columnKills+row, game.kills)
+	err = file.SetCellInt(sheetName, columnKills+row, userIngameStats.Kills)
 	if err != nil {
 		return fmt.Errorf("error when setting kills on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellInt(sheetName, columnDeaths+row, game.deaths)
+	err = file.SetCellInt(sheetName, columnDeaths+row, userIngameStats.Deaths)
 	if err != nil {
 		return fmt.Errorf("error when setting deaths on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellInt(sheetName, columnAssists+row, game.assists)
+	err = file.SetCellInt(sheetName, columnAssists+row, userIngameStats.Assists)
 	if err != nil {
 		return fmt.Errorf("error when setting assists on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellFloat(sheetName, columnKP+row, game.killParticipation, decimalPlacesKP, 64)
+	err = file.SetCellFloat(sheetName, columnKP+row, userIngameStats.Challenges.KP, decimalPlacesKP, 64)
 	if err != nil {
 		return fmt.Errorf("error when setting KP on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellFloat(sheetName, columnKDA+row, game.kda, decimalPlaces, 64)
+	err = file.SetCellFloat(sheetName, columnKDA+row, userIngameStats.Challenges.KDA, decimalPlaces, 64)
 	if err != nil {
 		return fmt.Errorf("error when setting KDA on row %s - %s", row, err.Error())
 	}
 
 	// Note the 0.5 way of rounding. It work only cos we don't care much about the accuracy of +/-0.000001 seconds
-	err = file.SetCellValue(sheetName, columnGameLength+row, time.Duration(int64(game.gameLengthSeconds+0.5)*int64(time.Second)))
+	gameLength := time.Duration(int64(userIngameStats.Challenges.GameLength+0.5) * int64(time.Second))
+	err = file.SetCellValue(sheetName, columnGameLength+row, gameLength)
 	if err != nil {
 		return fmt.Errorf("error when setting game length on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellFloat(sheetName, columnDPM+row, game.damagePerMinute, decimalPlaces, 64)
+	err = file.SetCellFloat(sheetName, columnDPM+row, userIngameStats.Challenges.DPM, decimalPlaces, 64)
 	if err != nil {
 		return fmt.Errorf("error when setting DPM on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellFloat(sheetName, columnGPM+row, game.goldPerMinute, decimalPlaces, 64)
+	err = file.SetCellFloat(sheetName, columnGPM+row, userIngameStats.Challenges.GPM, decimalPlaces, 64)
 	if err != nil {
 		return fmt.Errorf("error when setting GPM on row %s - %s", row, err.Error())
 	}
 
-	err = file.SetCellFloat(sheetName, columnCSPM+row, game.csPerMinute, decimalPlaces, 64)
+	cspm := (float64(userIngameStats.CS) / userIngameStats.Challenges.GameLength) * 60
+	err = file.SetCellFloat(sheetName, columnCSPM+row, cspm, decimalPlaces, 64)
 	if err != nil {
 		return fmt.Errorf("error when setting CSPM on row %s - %s", row, err.Error())
 	}
