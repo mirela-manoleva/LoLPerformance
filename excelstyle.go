@@ -60,8 +60,8 @@ const (
 
 const (
 	minKP = "0"   // Percent
-	midKP = "0.5" // Percent
-	maxKP = "1"   // Percent
+	midKP = "0.3" // Percent
+	maxKP = "0.7" // Percent
 
 	minKDA = "0"
 	midKDA = "1"
