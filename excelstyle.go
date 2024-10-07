@@ -67,17 +67,17 @@ const (
 	midKDA = "1"
 	maxKDA = "5"
 
-	minDPM = "300"
-	midDPM = "500"
+	minDPM = "400"
+	midDPM = "600"
 	maxDPM = "1000"
 
-	minGPM = "250"
-	midGPM = "300"
-	maxGPM = "360"
+	minGPM = "300"
+	midGPM = "375"
+	maxGPM = "420"
 
-	minCSPM = "4"
-	midCSPM = "6"
-	maxCSPM = "8"
+	minCSPM = "7"
+	midCSPM = "8"
+	maxCSPM = "10"
 )
 
 var firstRowStyle = excelize.Style{
